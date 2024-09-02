@@ -42,7 +42,6 @@ io.on('connection', (socket) => {
     socket.on("message", (arg, callback) => {
         socket.broadcast.emit('message', arg)
         socket.emit('message', arg)
-        console.log(arg);
     })
     socket.on("query", (arg, callback) => {
         if(arg === 'undefined'|| arg === null|| arg === ''){
