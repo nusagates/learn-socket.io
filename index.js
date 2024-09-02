@@ -17,61 +17,55 @@ const con = mysql.createConnection({
     database: "tep_dashboard"
 });
 
+// Route to handle HTTP GET requests to the root URL for testing purposes
 app.get('/', (req, res) => {
-    con.connect(function (err) {
-        if (err) throw err;
-        con.query("SELECT * FROM users", function (err, result, fields) {
-            if (err) {
-                res.send(response('err', err.sqlMessage, null))
-            } else {
-                if (result.length > 0) {
-                    res.send(response('200', 'Records found', result))
-                } else {
-                    res.send(response('404', 'No data found', null))
-                }
-            }
-
-        });
-    });
-    // res.send('<h1>Hello world</h1>');
+    res.send('<h1>Hello world</h1>');
 });
+
 let isConnected = false
+
+// Handle WebSocket connections
 io.on('connection', (socket) => {
     isConnected = socket.connected
 
+    // Handle 'message' event from client
     socket.on("message", (arg, callback) => {
         socket.broadcast.emit('message', arg)
         socket.emit('message', arg)
     })
+
+    // Handle 'query' event from client
     socket.on("query", (arg, callback) => {
         if(arg === 'undefined'|| arg === null|| arg === ''){
+            // Send the result back to the client along with the error message if the query is empty
             socket.emit('result', response('400', 'Query is empty', null))
-            return response('400', 'Query is empty', null)
+            return
         }
         let res = {}
+        // Execute the SQL query received from the client
         con.query(`${arg}`, function (err, result, fields) {
             if (err) {
-               res = response('err', err.sqlMessage, null)
-                socket.emit('result', res)
+                // Send the result back to the client along with the error message
+                socket.emit('result', response('err', err.sqlMessage, null))
             } else {
                 if (result.length > 0) {
-                   res = response('200', 'Records found', result)
-                    socket.emit('result', res)
+                    // Send the result back to the client along with the success message and the data
+                    socket.emit('result', response('200', 'Records found', result))
                 } else {
-                    res = response('404', 'No data found', null)
-                    socket.emit('result', res)
+                    // Send the result back to the client along with the error message if no data is found
+                    socket.emit('result', response('404', 'No data found', null))
                 }
             }
-
         });
-
     })
 
+    // Handle WebSocket disconnection
     socket.on('disconnect', (socket) => {
         console.log('Disconnect');
     });
 })
 
+// Start the server and listen on the specified port
 const port = 3000;
 server.listen(port, () => {
     console.log(`Server is running ${port}`);
