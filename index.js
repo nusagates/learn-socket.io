@@ -18,11 +18,9 @@ const con = mysql.createConnection({
     database: "tep_dashboard"
 });
 
-//app.set('view engine', 'pug')
 app.use( express.static( 'public' ));
 // Route to handle HTTP GET requests to the root URL for testing purposes
 app.get('/', (req, res) => {
-   // res.render('index', {title: 'Learn Socket.io', message: 'This is a simple chat application using Socket.io'});
     res.sendFile( path.join( __dirname + "/public/index.html" ));
 });
 
