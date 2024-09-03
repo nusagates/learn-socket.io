@@ -11,6 +11,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "mysql": "^2.18.1",
+    "pug": "^3.0.3",
     "socket.io": "^4.7.5",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.4.0"
   },

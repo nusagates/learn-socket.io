@@ -10,6 +10,7 @@ const io = require('socket.io')(server, {
     cors: {origin: '*'}
 });
 const mysql = require('mysql');
+const path = require( "path" )
 const con = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -17,9 +18,12 @@ const con = mysql.createConnection({
     database: "tep_dashboard"
 });
 
+//app.set('view engine', 'pug')
+app.use( express.static( 'public' ));
 // Route to handle HTTP GET requests to the root URL for testing purposes
 app.get('/', (req, res) => {
-    res.send('<h1>Hello world</h1>');
+   // res.render('index', {title: 'Learn Socket.io', message: 'This is a simple chat application using Socket.io'});
+    res.sendFile( path.join( __dirname + "/public/index.html" ));
 });
 
 let isConnected = false

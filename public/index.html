@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contoh Vue.js 3 dengan CDN</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.7.1/dist/vuetify.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@3.7.1/dist/vuetify.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+
+</head>
+<body>
+<div id="app">
+    <v-app>
+        <v-card>
+            <v-card-text>
+                <v-row>
+                    <v-col cols="6">
+                        <h2>Simple Chat</h2>
+                        <v-list v-if="data.length>0" id="pagetop" style="max-height: 300px;overflow-x: auto">
+                            <v-list-item rounded="lg" class="bg-black pa-2 mb-2" v-for="item in data">
+                                <v-list-item-title>{{ item.user }}</v-list-item-title>
+                                <v-list-item-subtitle>{{ item.message }}</v-list-item-subtitle>
+                            </v-list-item>
+                        </v-list>
+                        <v-sheet class="my-3" v-else>Chat will be displayed here</v-sheet>
+                        <v-text-field @click:append="sendMessage" append-icon="mdi-send" @keydown.enter="sendMessage" v-model="message" placeholder="Type your message here"/>
+                    </v-col>
+                    <v-col cols="6">
+                        <h2>Mysql Query</h2>
+                        <v-sheet class="my-3">
+                            <p>{{ result }}</p>
+                        </v-sheet>
+                        <v-text-field @click:append="sendQuery" append-icon="mdi-send" @keydown.enter="sendQuery" v-model="query" placeholder="Type your query here"/>
+                    </v-col>
+                </v-row>
+
+            </v-card-text>
+        </v-card>
+
+    </v-app>
+</div>
+
+<script>
+    const { createApp, ref } = Vue;
+    const { createVuetify } = Vuetify;
+    const socket =  io('http://localhost:3000', {});
+    const app = createApp({
+        setup() {
+            const timestamp = new Date()
+            const user = "User" + timestamp.getUTCMilliseconds()
+            socket.on('connect', () => {
+                isConnected.value = true
+                console.log('connected')
+            })
+            socket.on('message', (msg) => {
+                data.value.push({user: user, message: msg})
+            })
+            const message = ref('');
+            const count = ref(0);
+
+            const incrementCount = () => {
+                count.value++;
+            };
+
+            const decrementCount = () => {
+                count.value--;
+            };
+            const isConnected = ref(false)
+            const data = ref([]);
+            const query = ref('');
+            const result = ref('query result will be displayed here');
+            const sendMessage = () => {
+                if (isConnected) {
+                    socket.emit("message", message.value)
+                    message.value = ''
+                }
+            }
+            const sendQuery = () => {
+                socket.emit('query', query.value);
+            }
+
+            socket.on('result', (res) => {
+                result.value = res
+            })
+
+            return {
+                message,
+                count,
+                incrementCount,
+                decrementCount,
+                data,
+                query,
+                result,
+                sendMessage,
+                sendQuery,
+                isConnected
+            };
+        }
+    });
+
+    const vuetify = createVuetify();
+    app.use(vuetify).mount('#app');
+</script>
+</body>
+</html>
