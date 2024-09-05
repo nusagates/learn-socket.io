@@ -10,12 +10,13 @@ const io = require('socket.io')(server, {
     cors: {origin: '*'}
 });
 const mysql = require('mysql');
-const path = require( "path" )
+const path = require( "path" );
+const { table } = require('console');
 const con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "",
-    database: "tep_dashboard"
+    password: "password",
+    database: "tep_dash"
 });
 
 app.use( express.static( 'public' ));
@@ -37,25 +38,43 @@ io.on('connection', (socket) => {
     })
 
     // Handle 'query' event from client
-    socket.on("query", (arg, callback) => {
+    socket.on("query", (data, callback) => {
+   
+        const terms = data.terms
+        const arg = data.sql
+        const emitName = `result`
+        let resData = {
+            done: false,
+            items: [],
+            tableName: data.tableName
+        }
+
         if(arg === 'undefined'|| arg === null|| arg === ''){
             // Send the result back to the client along with the error message if the query is empty
-            socket.emit('result', response('400', 'Query is empty', null))
+            socket.emit(emitName, response('400', 'Query is empty', null))
             return
         }
-        let res = {}
+        
         // Execute the SQL query received from the client
-        con.query(`${arg}`, function (err, result, fields) {
+        con.query({
+            sql: arg,
+            values: terms
+        },  function (err, result, fields) {
+            
             if (err) {
                 // Send the result back to the client along with the error message
-                socket.emit('result', response('err', err.sqlMessage, null))
+                socket.emit(emitName, response('err', err.sqlMessage, resData))
             } else {
                 if (result.length > 0) {
                     // Send the result back to the client along with the success message and the data
-                    socket.emit('result', response('200', 'Records found', result))
+                    socket.emit(emitName, response('200', 'Records found', {
+                        ...resData,
+                        items: result,
+                    }))
+                    socket.emit('next')
                 } else {
                     // Send the result back to the client along with the error message if no data is found
-                    socket.emit('result', response('404', 'No data found', null))
+                    socket.emit(emitName, response('404', 'No data found', resData))
                 }
             }
         });
