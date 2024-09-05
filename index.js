@@ -11,12 +11,13 @@ const io = require('socket.io')(server, {
 });
 const mysql = require('mysql');
 const path = require( "path" );
-const { table } = require('console');
+require('dotenv').config()
+
 const con = mysql.createConnection({
-    host: "localhost",
-    user: "creator",
-    password: "CreatorTangguh",
-    database: "db_dashboard"
+    host: process.env.DB_HOST ?? 'localhost',
+    user: process.env.DB_USERNAME ?? 'creator',
+    password: process.env.DB_PASSWORD ?? 'CreatorTangguh',
+    database: process.env.DB_DATABASE ?? 'db_dashboard',
 });
 
 app.use( express.static( 'public' ));
@@ -87,7 +88,7 @@ io.on('connection', (socket) => {
 })
 
 // Start the server and listen on the specified port
-const port = 3000;
+const port = process.env.APP_PORT ?? 3000;
 server.listen(port, () => {
     console.log(`Server is running ${port}`);
 });
