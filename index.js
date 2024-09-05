@@ -14,9 +14,9 @@ const path = require( "path" );
 const { table } = require('console');
 const con = mysql.createConnection({
     host: "localhost",
-    user: "root",
-    password: "password",
-    database: "tep_dash"
+    user: "creator",
+    password: "CreatorTangguh",
+    database: "db_dashboard"
 });
 
 app.use( express.static( 'public' ));
